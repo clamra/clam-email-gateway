@@ -18,6 +18,7 @@ setup(
         'hiredis',
         'redis',
         'requests',
+        'lamson',
     ],
     entry_points = {
         'console_scripts': [

@@ -4,6 +4,9 @@ Define Datastructs for ceg
 '''
 import json
 
+import lamson.encoding
+
+
 class MailReq(dict):
     '''
     MailReq represent an incoming email
@@ -49,6 +52,35 @@ class MailReq(dict):
         ('message-headers', list)
     ]
 
+    @classmethod
+    def from_string(cls, data):
+        mail = lamson.encoding.from_string(data)
+        data = {}
+        data['message-headers'] = mail.headers.items()
+        if 'to' in mail:
+            data['recipient'] = mail['to']
+        if 'from' in mail:
+            data['from'] = mail['from']
+        if 'subject' in mail:
+            data['subject'] = mail['subject']
+        data['attachments'] = []
+        #for multipart email
+        if mail.parts:
+            for part in mail.parts:
+                ctype, ctype_params = part.content_encoding['Content-Type']
+                if ctype == 'text/plain':
+                    data['body-plain'] = part.body
+                elif ctype == 'text/html':
+                    data['body-plain'] = part.body
+                else:
+                    data['attachments'].append({
+                        'name' : ctype_params.get('name'),
+                        'content' : part.body,
+                        'content-type' : ctype
+                    })
+        else:
+            data['body-plain'] = mail.body
+        return cls(data)
 
     def to_http_payload(self):
         payload = []
