@@ -13,7 +13,7 @@ class HttpHandler(object):
 
     def handle(self, req):
         payload, files = req.to_http_payload()
-        payload.update(self.sign())
+        payload += self.sign()
         resp = requests.request(
             'POST',
             self.endpoint,
@@ -31,14 +31,15 @@ class HttpHandler(object):
     def sign(self):
         timestamp = self.gen_timestamp()
         token = self.gen_token()
+        print self.api_key
         signature = hmac.new(key=self.api_key,
                             msg='{}{}'.format(timestamp, token),
                             digestmod=hashlib.sha256).hexdigest() 
-        return {
-            'timestamp' : timestamp,
-            'token': token,
-            'signature': signature,
-        }
+        return [
+            ('timestamp', timestamp),
+            ('token', token),
+            ('signature', signature),
+        ]
 
     def gen_token(self):
         return "".join([random.choice(string.ascii_letters + string.digits + ".-")

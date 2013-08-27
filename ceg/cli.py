@@ -4,11 +4,11 @@ ceg - Clam Email Gateway
 
 Usage:
     ceg serve (--fake | --smtp [<listen>]) [options]
-    ceg worker [options]
+    ceg worker --forward <forward-endpoint> --api-key <api-key> [options]
 
 Options:
-  --redis        redis connect string [default: tcp://127.0.0.1:6379/0/]
-  -v --verbose   verbose mode
+  --redis       redis connect string [default: tcp://127.0.0.1:6379/0/]
+  -v --verbose  verbose mode
 
 '''
 from docopt import docopt
@@ -38,8 +38,11 @@ def command_serve(args):
         server.start()
 
 def command_worker(args):
+    print args
     from ceg.worker import IncomingWorker
-    worker = IncomingWorker()
+    from ceg.routing import ForwardAllRouter
+    router = ForwardAllRouter(args['<forward-endpoint>'], args['<api-key>'])
+    worker = IncomingWorker(router)
     worker.run()
 
 def main():
